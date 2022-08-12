@@ -1,4 +1,8 @@
 //----------------------------------------------------------
+// README - you must make sure that server & client are in the same location
+//----------------------------------------------------------
+
+//----------------------------------------------------------
 // Required aspects/files
 const fs = require('fs');
 const {conColor, conLine} = require('../../../formatting/globalvar');
