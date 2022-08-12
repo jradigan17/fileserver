@@ -26,39 +26,71 @@ conn.setEncoding("utf8"); // interpret data as text
 //----------------------------------------------------------
 
 //----------------------------------------------------------
-// Show Available Files - Currently will only do two levels - parent & 1 child
-const dirStructure = (direct) => {
+// Show Available Files - Account for .gitignore file
+let itemCount = 0;
+
+// Fetch .gitignore file & read file types to ignore
+// If no file or empty - send empty array
+const fetch = (file) => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(file, 'utf8', (err, data) => {
+      if (err) {
+        resolve(['.', []]);
+      } else {
+        fs.stat(file, (err, stats) => {
+          if (err) {
+            resolve(['.', []]);
+          } else {
+            if (stats.size > 0) {
+              resolve(['.', data.slice(1).toString().split("\r\n*")]);
+            }
+            resolve(['.', []]);
+          }
+        });
+      }
+    });
+  });
+};
+
+// Read directory
+const dirStructure = ([direct, gitignore]) => {
   return new Promise((resolve, reject) => {
     fs.readdir(direct, (err, files) => {
       if (err) {
         reject(console.log(err));
       }
-      resolve([direct, files]);
+      resolve([direct, files, gitignore]);
     });
   });
 };
 
-const fileType = ([path, files]) => {
+// Read file type
+const fileType = ([path, files, gitignore]) => {
   return Promise.allSettled(files.map(function(file) {
     return new Promise((resolve, reject) => {
       fs.stat(`${path}/${file}`, (error, stats) => {
         if (error) {
           reject(console.error('Error:', file));
         }
-        resolve([`${path}/${file}`, stats.isDirectory(), `${path}`, `${file}`]);
+        resolve([`${path}/${file}`, stats.isDirectory(), `${path}`, `${file}`, gitignore]);
       });
     });
   }));
 };
 
+// Print all files which are not .git, not part of .gitignore, and not a directory
 const printFile = (item) => {
   console.log(`${conColor.blue}\nFiles available in directory: ${item[0]["value"][2]}${conColor.reset}`);
   return Promise.allSettled(item.map(function(pizza) {
+    itemCount += 1;
     return new Promise((resolve, reject) => {
+      const result = item[0]["value"][4].filter(git => pizza["value"][3].includes(git));
       if (pizza["value"][3] === ".git") {
-        resolve()
-      } else if(pizza["value"][1]) {
-        resolve(dirStructure(pizza["value"][0]).then(fileType).then(printFile));
+        resolve();
+      } else if (result.length > 0) {
+        resolve();
+      } else if (pizza["value"][1]) {
+        resolve(dirStructure([pizza["value"][0], item[0]["value"][4]]).then(fileType).then(printFile));
       } else {
         resolve(console.log(`${conColor.cyan}${pizza["value"][0]}${conColor.reset}`));
       }
@@ -79,7 +111,8 @@ conn.on("data", (data) => {
 conn.on("connect", () => {
   console.log(`${conLine.centeredFullLine("Welcome to File Server", conColor.cyan)}`);
   console.log(`\n${conColor.cyan}The following are files available${conColor.reset}`);
-  dirStructure(".")
+  fetch('.gitignore')
+    .then(dirStructure)
     .then(fileType)
     .then(printFile)
     .then(file);
