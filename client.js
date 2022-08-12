@@ -4,7 +4,7 @@
 
 //----------------------------------------------------------
 // Required aspects/files
-const {conColor, conLine} = require('../../../formatting/globalvar');
+const {conColor, conLine} = require('../../formatting/globalvar');
 const net = require("net");
 const readline = require('readline');
 const fs = require('fs');
@@ -33,36 +33,38 @@ const dirStructure = (direct) => {
       if (err) {
         reject(console.log(err));
       }
-        resolve([direct, files]) 
-    })
-  })
-}
+      resolve([direct, files]);
+    });
+  });
+};
 
-const fileType = async ([path, files]) => {
-  return Promise.allSettled (files.map(function(file) {
+const fileType = ([path, files]) => {
+  return Promise.allSettled(files.map(function(file) {
     return new Promise((resolve, reject) => {
       fs.stat(`${path}/${file}`, (error, stats) => {
         if (error) {
           reject(console.error('Error:', file));
         }
-        resolve([`${path}/${file}`, stats.isDirectory(), `${path}`]) 
-      })
-    })
-  }))
-}
+        resolve([`${path}/${file}`, stats.isDirectory(), `${path}`, `${file}`]);
+      });
+    });
+  }));
+};
 
 const printFile = (item) => {
-  console.log(`${conColor.blue}\nFiles available in directory: ${item[0]["value"][2]}${conColor.reset}`)
-  return Promise.allSettled (item.map(function(pizza) {
+  console.log(`${conColor.blue}\nFiles available in directory: ${item[0]["value"][2]}${conColor.reset}`);
+  return Promise.allSettled(item.map(function(pizza) {
     return new Promise((resolve, reject) => {
-      if (pizza["value"][1]) {
-        resolve(dirStructure(pizza["value"][0]).then(fileType).then(printFile))
+      if (pizza["value"][3] === ".git") {
+        resolve()
+      } else if(pizza["value"][1]) {
+        resolve(dirStructure(pizza["value"][0]).then(fileType).then(printFile));
       } else {
-        resolve(console.log(`${conColor.cyan}${pizza["value"][0]}${conColor.reset}`))
+        resolve(console.log(`${conColor.cyan}${pizza["value"][0]}${conColor.reset}`));
       }
-    })
-  }))
-}
+    });
+  }));
+};
 //----------------------------------------------------------
 
 //----------------------------------------------------------
@@ -78,9 +80,9 @@ conn.on("connect", () => {
   console.log(`${conLine.centeredFullLine("Welcome to File Server", conColor.cyan)}`);
   console.log(`\n${conColor.cyan}The following are files available${conColor.reset}`);
   dirStructure(".")
-  .then(fileType)
+    .then(fileType)
     .then(printFile)
-      .then(file);
+    .then(file);
 });
 //----------------------------------------------------------
 
