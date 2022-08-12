@@ -1,6 +1,6 @@
 //----------------------------------------------------------
 // Required aspects/files
-const {conColor, conLine} = require('../../formatting/globalvar');
+const {conColor, conLine} = require('../../../formatting/globalvar');
 const net = require("net");
 const readline = require('readline');
 const fs = require('fs');
@@ -27,21 +27,30 @@ const dirStructure = (path) => {
   return new Promise((resolve, reject) => {
     fs.readdir(path, (err, files) => {
       if (err) {
-        return reject(console.log(err));
-      } else {
-        files.forEach(file => {
-          if (!file.includes('.')) {
-            dirStructure(`${path}/${file}`);
-          } else {
-            console.log(`${conColor.cyan}${path}/${file}${conColor.reset}`);
-          }
-        });
-        return resolve();
+        reject(console.log(err));
       }
-    });
-  });
+        // console.log(`Files available in directory :${path}\n`)
+        resolve(files) 
+    })
+  })      
+  .then(function(files) {
+    return Promise.all (files.map(function(file) {
+      return new Promise((resolve, reject) => {
+        fs.stat(`${path}/${file}`, (error, stats) => {
+          if (error) {
+            reject(console.error('Error:', file));
+          } else {
+            if (stats.isDirectory()) {
+              resolve(dirStructure(`${path}/${file}`))
+            } else {
+              resolve(console.log(`${conColor.cyan}${path}/${file}${conColor.reset}`))
+            }
+          }   
+        })
+      })
+    }))
+  })
 };
-
 //----------------------------------------------------------
 
 //----------------------------------------------------------
@@ -55,7 +64,7 @@ conn.on("data", (data) => {
 // Client on Server Conneciton
 conn.on("connect", () => {
   console.log(`${conLine.centeredFullLine("Welcome to File Server", conColor.cyan)}`);
-  console.log(`\n${conColor.cyan}The following are files available on the server${conColor.reset}`);
+  console.log(`\n${conColor.cyan}The following are files available${conColor.reset}`);
   dirStructure('.')
     .then(file);
 });

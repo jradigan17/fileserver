@@ -1,7 +1,7 @@
 //----------------------------------------------------------
 // Required aspects/files
 const fs = require('fs');
-const {conColor, conLine} = require('../../formatting/globalvar');
+const {conColor, conLine} = require('../../../formatting/globalvar');
 const net = require("net");
 //----------------------------------------------------------
 
