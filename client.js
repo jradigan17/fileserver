@@ -1,5 +1,8 @@
 //----------------------------------------------------------
 // README - you must make sure that server & client are in the same location
+// TODO - Client & Server options to exit without knowing about CTRL-C
+//      - File Server Structure print from server side instead of client side then inact readline
+//      - Once file is read - restart the readline for another file to be read
 //----------------------------------------------------------
 
 //----------------------------------------------------------
@@ -118,7 +121,7 @@ conn.on("connect", () => {
     .then(() => {
       return new Promise((resolve, reject) => {
         resolve(console.log(`${conColor.red}Total Number of Files Read: ${itemCount}${conColor.reset}`));
-      })
+      });
     })
     .then(file);
 });
