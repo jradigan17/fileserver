@@ -42,7 +42,7 @@ const fetch = (file) => {
             resolve(['.', []]);
           } else {
             if (stats.size > 0) {
-              resolve(['.', data.slice(1).toString().split("\r\n*")]);
+              resolve(['.', data.toString().split("\r\n").map(each => each.trim().replace(/\*/, '')).filter(word => word.length > 0 && word[0] !== "#")]);
             }
             resolve(['.', []]);
           }
@@ -115,6 +115,11 @@ conn.on("connect", () => {
     .then(dirStructure)
     .then(fileType)
     .then(printFile)
+    .then(() => {
+      return new Promise((resolve, reject) => {
+        resolve(console.log(`${conColor.red}Total Number of Files Read: ${itemCount}${conColor.reset}`));
+      })
+    })
     .then(file);
 });
 //----------------------------------------------------------
