@@ -120,7 +120,7 @@ conn.on("connect", () => {
     .then(printFile)
     .then(() => {
       return new Promise((resolve, reject) => {
-        resolve(console.log(`${conColor.red}Total Number of Files Read: ${itemCount}${conColor.reset}`));
+        resolve(console.log(`\n${conColor.red}Total Number of Files Read: ${itemCount}${conColor.reset}\n`));
       });
     })
     .then(file);
